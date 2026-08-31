@@ -2,7 +2,7 @@
 
 ## Principle
 
-Jarvis-Hermes is a thin integration/configuration project around the upstream Hermes Agent. Keep the upstream agent intact where possible; prefer configuration and documented integration points over forks and invasive patches.
+Jarvis-Hermes is a thin integration/configuration project around the upstream Hermes Agent and OmniRoute projects. Keep both upstream projects intact where possible; prefer configuration and documented integration points over forks and invasive patches.
 
 ## M0 — Repository baseline
 
@@ -13,33 +13,51 @@ Status: **READY**
 - `.env.example` added.
 - Project constraints documented.
 
-## M1 — Cloud-only Hermes Desktop
+## M1 — Hermes Desktop + cloud model baseline
 
 Success criteria:
 
-- Hermes Desktop installed on Windows.
-- Hermes launches from the desktop application, not a terminal for normal use.
-- A cloud provider is configured.
-- No local LLM runtime/model is installed or selected.
-- Basic text conversation works.
+- Hermes Agent installed on Windows.
+- Hermes launches successfully.
+- No local LLM runtime/model is selected.
+- Basic text conversation works with a currently available cloud model.
 - Hermes diagnostics are clean enough to proceed.
 
-Initial provider target: OpenRouter/free-compatible route, subject to current provider availability and quota.
+The OpenCode Free model catalog is treated as dynamic and non-guaranteed; a model shown in a picker may become unavailable upstream. Do not hard-code a single free model as a permanent dependency.
 
-## M2 — Voice
+## M2 — OmniRoute cloud routing + free-first fallback
+
+Primary architecture:
+
+Hermes Desktop → Hermes Agent → OmniRoute → `model: auto` → eligible cloud/free providers → automatic fallback.
+
+Success criteria:
+
+- Official OmniRoute package installed on Windows.
+- Dashboard responds on `http://localhost:20128`.
+- OpenAI-compatible API responds on `http://localhost:20128/v1`.
+- A provider is connected in OmniRoute using its supported free/cloud authorization method.
+- Hermes is configured with a custom OpenAI-compatible endpoint pointing at OmniRoute.
+- Hermes can complete a basic chat through OmniRoute.
+- Hermes/OmniRoute do not run a local LLM.
+- Provider/model failure is recovered by OmniRoute routing to another eligible route when available.
+
+Reference: https://github.com/diegosouzapw/OmniRoute
+
+## M3 — Voice
 
 - Microphone input.
 - Cloud speech-to-text where practical.
-- Text-to-speech using a free supported backend where practical.
+- Text-to-speech using Edge TTS or another free supported backend.
 - Confirm voice round-trip works without local LLM inference.
 
-## M3 — Wake word
+## M4 — Wake word
 
 Target: `Hey Jarvis`.
 
 Keep wake-word detection lightweight/local if supported; do not stream microphone audio continuously to the cloud merely for wake detection.
 
-## M4 — Core tools
+## M5 — Core tools
 
 - Files
 - Shell/tool execution
@@ -48,7 +66,7 @@ Keep wake-word detection lightweight/local if supported; do not stream microphon
 
 Use approvals for risky actions.
 
-## M5 — Computer Use
+## M6 — Computer Use
 
 - Open/close applications.
 - Keyboard/mouse interaction.
@@ -57,17 +75,17 @@ Use approvals for risky actions.
 
 Known constraint: Windows elevation/UIPI can block automation of elevated applications from a non-elevated Hermes process.
 
-## M6 — Vision
+## M7 — Vision
 
 Use cloud-capable vision models where practical. Do not install a large local VLM.
 
-## M7 — Memory
+## M8 — Memory
 
 - Persistent memories.
 - Session continuity.
 - No unnecessary storage of credentials/secrets.
 
-## M8 — Skills
+## M9 — Skills
 
 Create only high-value reusable skills first:
 
@@ -76,32 +94,30 @@ Create only high-value reusable skills first:
 - GitHub
 - PC diagnostics
 
-## M9 — Calendar
+## M10 — Calendar
 
 Add official OAuth/API integration only after core assistant is stable.
 
-## M10 — Automation
+## M11 — Automation
 
 Add scheduled tasks/cron after interactive voice and tool execution are reliable.
 
-## M11 — Reliability
+## M12 — Reliability and fallback hardening
 
 Test and handle:
 
 - network failures
 - provider timeouts
 - rate limits
+- unavailable models
 - tool failures
 - microphone/TTS failures
 - browser failures
 - missing permissions
+- OmniRoute startup failures
 
 Errors must be understandable to the user and detailed enough in logs for debugging.
 
-## M12 — Optional OmniRoute
-
-Only add OmniRoute after direct Hermes + cloud provider is stable. The purpose is provider aggregation/fallback, not to complicate the initial system.
-
 ## Definition of done
 
-The user can launch Jarvis from Windows Desktop, speak naturally, receive spoken answers, use cloud AI without a local LLM, and safely perform useful computer/browser/file tasks.
+The user can launch Jarvis from Windows Desktop, speak naturally, receive spoken answers, use cloud AI without a local LLM, and safely perform useful computer/browser/file tasks. OmniRoute provides free-first multi-provider routing and fallback where eligible routes are available.
