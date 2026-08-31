@@ -1,25 +1,27 @@
 # Jarvis-Hermes
 
-Cloud-first personal AI assistant built around **NousResearch Hermes Agent**.
+Cloud-first personal AI assistant built around **NousResearch Hermes Agent** and an optional-free-first **OmniRoute** routing layer.
 
 ## Project goals
 
 - Use Hermes Agent as the core agent/orchestrator.
 - Keep LLM inference in the cloud. **No local LLM.**
+- Use **OmniRoute** as the primary multi-provider gateway once the Hermes baseline is installed.
+- Prefer free cloud providers/models and automatic fallback when a route is unavailable or rate-limited.
 - Target Windows Desktop as the normal user interface.
-- Voice-first interaction: microphone → cloud STT → Hermes → cloud LLM → TTS.
+- Voice-first interaction: microphone → cloud STT → Hermes → OmniRoute → cloud LLM → TTS.
 - Computer control, browser automation, files, memory, skills, and safe approvals.
-- Keep the local footprint as small as practical.
+- Keep the local footprint as small as practical. Gateway/runtime processes are local; model inference remains remote.
 - Build incrementally and test every milestone before adding the next one.
 
-## Explicitly out of scope for the initial build
+## Explicitly out of scope
 
 - Ollama
 - Gemma/Llama/Qwen/Mistral local models
 - Local GGUF inference
 - Docker/Redis unless a later feature actually requires them
-- OmniRoute until the direct Hermes + cloud-provider path is proven
 - Rebuilding VoiceOS
+- Running any LLM inference on the user's PC
 
 ## Architecture
 
@@ -30,7 +32,15 @@ Jarvis / Hermes Desktop
   ↓
 Hermes Agent
   ↓
-Cloud AI Provider
+OmniRoute (local gateway)
+  ↓
+Free / cloud AI providers
+  ├─ provider A
+  ├─ provider B
+  ├─ provider C
+  └─ provider ...
+  ↓
+auto routing + fallback
   ↓
 Cloud LLM
   ↓
@@ -54,6 +64,8 @@ Cloud STT
   ↓
 Hermes
   ↓
+OmniRoute
+  ↓
 Cloud LLM
   ↓
 TTS
@@ -63,24 +75,33 @@ Speaker
 
 ## Current upstream
 
-This project is a thin project/configuration layer around Hermes Agent. We do not copy the Hermes source tree unless there is a concrete reason to do so.
+This project is a thin project/configuration/integration layer around Hermes Agent and the upstream OmniRoute project. We do not fork or copy either source tree unless there is a concrete reason to do so.
 
-Upstream Hermes: https://github.com/NousResearch/hermes-agent
+- Hermes Agent: https://github.com/NousResearch/hermes-agent
+- OmniRoute: https://github.com/diegosouzapw/OmniRoute
+
+## Routing policy
+
+- Start with OmniRoute's `auto` route after the gateway is configured.
+- Prefer free cloud routes where they satisfy Hermes' tool/context requirements.
+- Allow automatic fallback to another eligible route when a provider/model is unavailable or rate-limited.
+- Do not assume free-tier availability is permanent; provider quotas and catalogs can change.
+- Keep Hermes' own provider fallback available as a secondary safety net where configured.
 
 ## Milestones
 
-1. Hermes Desktop + cloud LLM + basic chat
-2. Voice input/output
-3. Wake word (`Hey Jarvis` target)
-4. Core tools
-5. Computer Use
-6. Vision/screen understanding
-7. Persistent memory
-8. Skills
-9. Calendar integration
-10. Scheduled automation
-11. Reliability and fallback
-12. Optional OmniRoute integration
+1. Hermes Desktop + working cloud model baseline
+2. OmniRoute gateway + free-provider auto routing
+3. Voice input/output
+4. Wake word (`Hey Jarvis` target)
+5. Core tools
+6. Computer Use
+7. Vision/screen understanding
+8. Persistent memory
+9. High-value Skills
+10. Calendar integration
+11. Scheduled automation
+12. Reliability, recovery, and provider rotation hardening
 
 ## Development rule
 
